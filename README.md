@@ -1,6 +1,6 @@
 ## Description
 
-This is a simple chat made in C. You have various commands availables,
+This is a secured chat made in C. You have various commands available,
 such as:
 
 - /help : display the help menu
@@ -8,7 +8,7 @@ such as:
 - /dir : get the current operating directory
 - /ip : get the server's public IP address
 - /reboot : restart the server (entire operating system)
-- /quit : exit the chat
+- /quit : exit the chat (you can use Crtl+C but you should avoid it)
 
 ## How to use
 
