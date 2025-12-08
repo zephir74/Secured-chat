@@ -22,4 +22,4 @@ For the certificates, execute `chmod +x generate-cert.sh && ./generate-cert.sh`.
 ## Requirements
 
 - gcc compiler (`sudo apt install gcc`)
-- openssl additional libraries (`sudo apt install libssl-dev libssl-doc libssl 3t64`)
+- openssl additional libraries (`sudo apt install libssl-dev libssl-doc libssl-3t64`)
