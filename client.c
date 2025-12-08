@@ -40,17 +40,6 @@ int help_menu() {
     return 0;
 }
 
-void hexdump(const uint8_t *data, unsigned int size)
-{
-    int i;
-    for (i = 0; i < size; i++) {
-        if ((i % 16) == 0) {
-            fprintf(stderr, "\n0x%04x: ", i);
-        }
-        fprintf(stderr, "0x%02x ", data[i]);
-    }
-}
-
 int quit(int *should_stop) {
     *should_stop = 1;
     return 0;
