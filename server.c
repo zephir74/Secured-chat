@@ -2,6 +2,7 @@
  * Server script for secured
  * CLI chat application 
  */
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h> // standard libraries
@@ -28,8 +29,8 @@ struct client {
 
 void usage(const char *name) {
     fprintf(stdout, "%s -p port [-h]\n", name);
-    fprintf(stdout, "    -p <port>    port to use\n");
-    fprintf(stdout, "    -h           this help message\n");
+    fprintf(stdout, "   -p <port>    port to use (default: 1234)\n");
+    fprintf(stdout, "   -h           this help message\n");
     fprintf(stdout, "\n");
 }
 
@@ -217,6 +218,7 @@ int client_handle_private_message(struct client *client, char *buffer, struct cl
     int i;
     char *private = "[Private] "; 
     char *space = ": ";
+	char message[2048];
     
     user = buffer + 1;
     msg = memchr(buffer, ' ', strlen(buffer));
@@ -227,7 +229,7 @@ int client_handle_private_message(struct client *client, char *buffer, struct cl
     msg++;
 
     for (i = 0; i < max_client; i++) {
-		if (strncmp(id[i].username, user, strlen(id[i].username)) == 0) {	
+		if (strncmp(id[i].username, user, strlen(id[i].username)) == 0) {
 			SSL_write(id[i].ssl, private, strlen(private));
 			SSL_write(id[i].ssl, id[i].username, strlen(id[i].username));
 			SSL_write(id[i].ssl, space, strlen(space));
@@ -236,6 +238,7 @@ int client_handle_private_message(struct client *client, char *buffer, struct cl
 		}
     }
 
+	*message = '\0';
     printf("User %s not found\n", user);
     return -EINVAL;
 }
@@ -250,9 +253,9 @@ int client_handle_message(struct client *client, char *buffer, struct client *id
     
     for (i = 0; i < max_client; i++) {
         if ((id[i].fd != -1) && (id[i].fd != client->fd)) {
-	    	SSL_write(id[i].ssl, client->username, strlen(client->username));
-	    	SSL_write(id[i].ssl, space, strlen(space));
-        	SSL_write(id[i].ssl, buffer, strlen(buffer));
+			SSL_write(id[i].ssl, client->username, strlen(client->username));
+			SSL_write(id[i].ssl, space, strlen(space));
+			SSL_write(id[i].ssl, buffer, strlen(buffer));
         }
     }
     
@@ -336,8 +339,7 @@ int main(int argc, char *argv[]) {
 	    fprintf(stderr,"Private key does not match the certificate public key\n");
 	    exit(5);
 	}
-	
-	/* Create server socket */
+
 	ret = socket(AF_INET, SOCK_STREAM, 0); // create TCP socket
 	if (ret == -1) {
 	    perror("Socket creation failed");

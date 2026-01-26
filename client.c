@@ -1,25 +1,28 @@
 /*
- * Max username size is
- * 256 characters
- */ 
-#include <fcntl.h>
+ * Client script for secured
+ * CLI chat application 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // standard libraries
 #include <poll.h>
 #include <unistd.h>
+#include <fcntl.h>
 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h> // network libraries
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include <openssl/ssl.h> // openssl libraries
 #include <openssl/err.h>
 
 void usage(const char *name) {
-    fprintf(stdout, "%s -s <server_ip> -p port -u <username> [-h]\n", name);
+    fprintf(stdout, "%s -s <server_ip> -p <port> -u <username> [-h]\n", name);
     fprintf(stdout, "    -s <server_ip>  server IPv4 address to connect\n");
-    fprintf(stdout, "    -p <port>       server port number\n");
+    fprintf(stdout, "    -p <port>       server port number (default: 1234)\n");
     fprintf(stdout, "    -u <username>   username in the chat\n");
     fprintf(stdout, "    -h              this help message\n");
     fprintf(stdout, "\n");
@@ -96,20 +99,24 @@ int read_input(SSL *ssl, char *buffer, int *pos, int buffer_size, int *should_st
 }
 
 int main(int argc, char *argv[]) {
-    int opt;
+    struct addrinfo hints;
+    struct addrinfo *result;
     struct pollfd fds[2];
+    int opt;
     int ret;
     int pos = 0;
-    char buffer[2048] = { 0 };
     int should_stop = 0;
+    char buffer[2048] = { 0 };
     const char *username;
     const char *server_addr;
-    int port;
+    char *port;
     SSL_CTX *ctx;
     SSL *ssl;
 
+    memset(&hints, 0, sizeof(hints));
+    
     username = NULL;
-    port = 1234;
+    port = "1234";
     server_addr = NULL;
 
     while ((opt = getopt(argc, argv, "s:p:u:h")) != -1) {
@@ -118,7 +125,7 @@ int main(int argc, char *argv[]) {
                 server_addr = optarg;
                 break;
             case 'p':
-                port = atoi(optarg);
+                *port = atoi(optarg);
                 break;
             case 'u':
                 username = optarg;
@@ -157,12 +164,16 @@ int main(int argc, char *argv[]) {
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    struct sockaddr_in address;
-	address.sin_family = AF_INET;		  // struct to define type,
-	address.sin_addr.s_addr = inet_addr(server_addr); // address and port to use
-	address.sin_port = htons(port);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-    if (connect(fd, (struct sockaddr*)&address, sizeof(address)) == -1) {
+    ret = getaddrinfo(server_addr, port, &hints, &result);
+    if (ret != 0) {
+        printf("getaddrinfo() error: %s\n", gai_strerror(ret));
+        exit(EXIT_FAILURE);
+    }
+
+    if (connect(fd, result->ai_addr, result->ai_addrlen) == -1) {
         perror("An error occured, cannot connect\n");
         exit(EXIT_FAILURE);
     }
@@ -207,7 +218,9 @@ int main(int argc, char *argv[]) {
 
     SSL_free(ssl);
     SSL_CTX_free(ctx);
-    
+
+    freeaddrinfo(result);
+
     shutdown(fd, 2);
 
     return 0;
