@@ -12,11 +12,11 @@ such as:
 
 ## How to use
 
-To send a message, you just need to enter the string you want to send.\n
-For private messages, enter `@<username> <your_message>`.\n
-You can receive the message + the user who sent it.\n
+To send a message, you just need to enter the string you want to send.
+For private messages, enter `@<username> <your_message>`.
+You can receive the message + the user who sent it.
 To compile the files, open a shell in the repository and enter `make all`.
-Then, type `./server -h` or `./client -h` to have detailed examples on how to use.\n
+Then, type `./server -h` or `./client -h` to have detailed examples on how to use.
 For the certificates, execute `chmod +x generate-cert.sh && ./generate-cert.sh`. You can sign your certificate with your own enterprise name (CN= field).
 
 ## Requirements
@@ -27,5 +27,5 @@ For the certificates, execute `chmod +x generate-cert.sh && ./generate-cert.sh`.
 
 ## Additional information:
 
-If your local network doesn't have an integrated DNS server, you will be limited to IP address only when connecting.\n
+If your local network doesn't have an integrated DNS server, you will be limited to IP address only when connecting.
 If there is a firewall on your local network, you might not be able to reach the server.
