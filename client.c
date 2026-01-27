@@ -20,8 +20,8 @@
 #include <openssl/err.h>
 
 void usage(const char *name) {
-    fprintf(stdout, "%s -s <server_ip> -p <port> -u <username> [-h]\n", name);
-    fprintf(stdout, "    -s <server_ip>  server IPv4 address to connect\n");
+    fprintf(stdout, "%s -s <server> -p <port> -u <username> [-h]\n", name);
+    fprintf(stdout, "    -s <server>     server IPv4 address / machine name to connect\n");
     fprintf(stdout, "    -p <port>       server port number (default: 1234)\n");
     fprintf(stdout, "    -u <username>   username in the chat\n");
     fprintf(stdout, "    -h              this help message\n");
