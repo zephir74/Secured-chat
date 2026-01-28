@@ -1,6 +1,6 @@
 ## Description
 
-This is a chat made in C and secured with openssl. You have various commands available,
+This is a CLI chat secured with openssl. There are various commands available,
 such as:
 
 - /help : display the help menu
