@@ -69,6 +69,7 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
 			id[i].fd = fd;
 
 			SSL_read(ssl, buffer, sizeof(buffer) - 1);
+
 			id[i].username = strdup(buffer);
 
 			id[i].ssl = ssl;
@@ -218,7 +219,10 @@ int client_handle_private_message(struct client *client, char *buffer, struct cl
     int i;
     char *private = "[Private] "; 
     char *space = ": ";
+	char *err_user = "Error: this user does not exist, please retry later";
 	char message[2048];
+
+	*message = '\0';
     
     user = buffer + 1;
     msg = memchr(buffer, ' ', strlen(buffer));
@@ -228,36 +232,48 @@ int client_handle_private_message(struct client *client, char *buffer, struct cl
     }
     msg++;
 
+	strcat(message, private);
+	strcat(message, client->username);
+	strcat(message, space);
+	strcat(message, msg);
+
     for (i = 0; i < max_client; i++) {
 		if (strncmp(id[i].username, user, strlen(id[i].username)) == 0) {
-			SSL_write(id[i].ssl, private, strlen(private));
-			SSL_write(id[i].ssl, id[i].username, strlen(id[i].username));
-			SSL_write(id[i].ssl, space, strlen(space));
-			SSL_write(id[i].ssl, msg, strlen(msg));
+			SSL_write(id[i].ssl, message, strlen(message));
+			*message = '\0';
 			return 0;
+		} else {
+			SSL_write(id[i].ssl, err_user, strlen(err_user));
+			printf("User %s not found\n", user);
+    		return -EINVAL;
 		}
     }
 
-	*message = '\0';
-    printf("User %s not found\n", user);
-    return -EINVAL;
+	return 0;
 }
 
 int client_handle_message(struct client *client, char *buffer, struct client *id, int max_client) {
     int i;
     char *space = ": ";
+	char message[2048];
+
+	*message = '\0';
     
     printf("%s", client->username);
     printf(": ");
     printf("%s\n", buffer);
+	
+	strcat(message, client->username);
+	strcat(message, space);
+	strcat(message, buffer);
     
     for (i = 0; i < max_client; i++) {
         if ((id[i].fd != -1) && (id[i].fd != client->fd)) {
-			SSL_write(id[i].ssl, client->username, strlen(client->username));
-			SSL_write(id[i].ssl, space, strlen(space));
-			SSL_write(id[i].ssl, buffer, strlen(buffer));
+			SSL_write(id[i].ssl, message, strlen(message));
         }
     }
+
+	*message = '\0';
     
     return 0;
 }
@@ -339,7 +355,8 @@ int main(int argc, char *argv[]) {
 	    fprintf(stderr,"Private key does not match the certificate public key\n");
 	    exit(5);
 	}
-
+	
+	/* Create server socket */
 	ret = socket(AF_INET, SOCK_STREAM, 0); // create TCP socket
 	if (ret == -1) {
 	    perror("Socket creation failed");
@@ -408,9 +425,9 @@ int main(int argc, char *argv[]) {
 						if (fds[i].fd == id[j].fd) {
 							client = &id[j];
 						}
-				}
+					}
 
-				client_handle(client, id, MAX_CLIENT);
+					client_handle(client, id, MAX_CLIENT);
 				}
 			}
 	    }
