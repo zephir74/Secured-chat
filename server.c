@@ -258,10 +258,6 @@ int client_handle_message(struct client *client, char *buffer, struct client *id
 	char message[2048];
 
 	*message = '\0';
-    
-    printf("%s", client->username);
-    printf(": ");
-    printf("%s\n", buffer);
 	
 	strcat(message, client->username);
 	strcat(message, space);
