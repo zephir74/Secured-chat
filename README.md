@@ -8,7 +8,7 @@ such as:
 - /dir : get the current operating directory
 - /ip : get the server's public IP address
 - /reboot : restart the server (entire operating system)
-- /quit : exit the chat (you can use Crtl+C but you should avoid it)
+- /quit : exit the chat (you can use Crtl+C but you should avoid it as it may crash the server)
 
 ## How to use
 
