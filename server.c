@@ -37,9 +37,11 @@ void usage(const char *name) {
 int client_accept(int server_fd, struct sockaddr_in *address, struct client *id, int max_client, SSL_CTX *ctx) {
   socklen_t addrlen;
   int i;
+  int j;
   int fd;
   int ret;
   char buffer[256];
+  char *usercheck;
   SSL *ssl;
 
   memset(buffer, 0, sizeof(buffer));
@@ -70,9 +72,23 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
 
       SSL_read(ssl, buffer, sizeof(buffer) - 1);
 
-      id[i].username = strdup(buffer);
+      usercheck = strdup(buffer);
+
+      for (j = 0; j < max_client; j++) {
+	if (id[j].username != NULL && strcmp(usercheck, id[j].username) == 0) {
+	  printf("Username '%s' already taken, connection refused\n", usercheck);
+	  free(usercheck);
+	  SSL_free(ssl);
+	  close(fd);
+	  return 0;
+	}
+      }
+
+      free(usercheck);
 
       id[i].ssl = ssl;
+
+      id[i].username = strdup(buffer);
 			
       printf("New client '%s' connected\n", id[i].username);
 			

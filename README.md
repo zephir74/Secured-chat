@@ -27,5 +27,6 @@ For the certificates, execute `chmod +x generate-cert.sh && ./generate-cert.sh`.
 
 ## Additional information:
 
-If your local network doesn't have an integrated DNS server, you will be limited to IP address only when connecting.
-If there is a firewall on your local network, you might not be able to reach the server.
+- If your local network doesn't have an integrated DNS server, you will be limited to IP address only when connecting.
+- If there is a firewall on your local network, you might not be able to reach the server.
+- You might receive an error saying "Error while receiving : SUCCESS". This is either due to a crash from the server or if you tried to connect with a username that was already used.

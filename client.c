@@ -55,6 +55,7 @@ int receive_msg(SSL *ssl) {
   ret = SSL_read(ssl, buffer, sizeof(buffer) - 1);
   if (ret == -1) {
     perror("Error while receiving");
+    exit(EXIT_FAILURE);
   } else {
     printf("%s\n", buffer);
   }
