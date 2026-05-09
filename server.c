@@ -14,12 +14,16 @@
 #include <sys/socket.h> 
 #include <netinet/in.h>
 
-#include <openssl/err.h> 
+#include <openssl/err.h>
 #include <openssl/ssl.h>
 
 #define MAX_CLIENT 5
 #define CERT "server-cert.pem"
-#define KEY "server-key.pem"
+#define KEY  "server-key.pem"
+
+#define ANSI_RESET  "\x1b[0m"
+#define ANSI_RED    "\x1b[31m"  
+#define ANSI_YELLOW "\x1b[33m"
 
 struct client {
   int fd;
@@ -50,7 +54,7 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
     
   ret = accept(server_fd, (struct sockaddr*)address, &addrlen);
   if (ret == -1) {
-    perror("Error while accepting");
+    perror(ANSI_YELLOW "Error while accepting" ANSI_RESET);
     return ret;
   }
 
@@ -62,7 +66,7 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
       SSL_set_fd(ssl, fd);
       ret = SSL_accept(ssl);
       if (ret != 1) {
-	printf("SSL connection could not be established\n");
+	printf(ANSI_YELLOW "SSL connection could not be established\n" ANSI_RESET);
 	SSL_free(ssl);
 	close(fd);
 	return -EIO;
@@ -76,7 +80,7 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
 
       for (j = 0; j < max_client; j++) {
 	if (id[j].username != NULL && strcmp(usercheck, id[j].username) == 0) {
-	  printf("Username '%s' already taken, connection refused\n", usercheck);
+	  printf(ANSI_RED "Username '%s' already taken, connection refused\n" ANSI_RESET, usercheck);
 	  free(usercheck);
 	  SSL_free(ssl);
 	  close(fd);
@@ -99,7 +103,7 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
     }
   }
 
-  printf("Too many clients, cannot accept\n");
+  printf(ANSI_RED "Too many clients, cannot accept\n" ANSI_RESET);
   close(ret);
   return -EBUSY;
 }
@@ -119,7 +123,7 @@ int client_handle_command_users(char *msg, int msg_size, struct client *id, int 
     }
 
     if (remaining == 0) {
-      printf("Cannot write username, not enough space");
+      printf(ANSI_RED "Cannot write username, not enough space" ANSI_RESET);
       return -ENOMEM;
     }
 			
@@ -185,7 +189,7 @@ int client_handle_disconnect(struct client *client, struct client *id, int max_c
   int i;
   for (i = 0; i < max_client; i++) {
     if (id[i].fd == client->fd) {
-      printf("Disconnect client '%s'\n", client->username);
+      printf(ANSI_YELLOW "Disconnect client '%s'\n" ANSI_RESET, client->username);
 
       close(id[i].fd);
       id[i].fd = -1;
@@ -222,7 +226,7 @@ int client_handle_command(struct client *client, struct client *id, char *buffer
 	
   ret = SSL_write(client->ssl, msg_command, strlen(msg_command));
   if (ret == -1) {
-    perror("Error while sending");
+    perror(ANSI_YELLOW "Error while sending" ANSI_RESET);
     ret = -errno;
   }
     
@@ -351,7 +355,7 @@ int main(int argc, char *argv[]) {
 
   ctx = SSL_CTX_new(SSLv23_method());
   if (ctx == NULL) {
-    printf("SSL object creation failed: ");
+    printf(ANSI_RED "SSL object creation failed: " ANSI_RESET);
     ERR_print_errors_fp(stdout);
     exit(EXIT_FAILURE);
   }
@@ -371,7 +375,7 @@ int main(int argc, char *argv[]) {
   /* Create server socket */
   ret = socket(AF_INET, SOCK_STREAM, 0); // create TCP socket
   if (ret == -1) {
-    perror("Socket creation failed");
+    perror(ANSI_RED "Socket creation failed" ANSI_RESET);
     exit(EXIT_FAILURE);
   }
   server_fd = ret;
@@ -379,7 +383,7 @@ int main(int argc, char *argv[]) {
   opt = 1;
   ret = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
   if (ret == -1) {
-    perror("setsockopt(SO_REUSEADDR) failed");
+    perror(ANSI_YELLOW "setsockopt(SO_REUSEADDR) failed" ANSI_RESET);
   }
 	
   address.sin_family = AF_INET;		  // struct to define type,
@@ -387,12 +391,12 @@ int main(int argc, char *argv[]) {
   address.sin_port = htons(port);
 	
   if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) == -1) {
-    perror("Error while binding");
+    perror(ANSI_RED "Error while binding" ANSI_RESET);
     exit(EXIT_FAILURE);
   }
 	
   if (listen(server_fd, 10) == -1) {
-    perror("Error while listening");
+    perror(ANSI_RED "Error while listening" ANSI_RESET);
     exit(EXIT_FAILURE);
   }
 
@@ -420,7 +424,7 @@ int main(int argc, char *argv[]) {
 		
     ret = poll(fds, fd_num, -1);
     if (ret == -1) {
-      perror("Error while polling");
+      perror(ANSI_YELLOW "Error while polling" ANSI_RESET);
       break;
     }
 

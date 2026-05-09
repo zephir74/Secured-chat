@@ -10,6 +10,8 @@ such as:
 - /reboot : restart the server (entire operating system)
 - /quit : exit the chat (you can use Crtl+C but you should avoid it as it may crash the server)
 
+There are also a few color codes. Red messages are for fatal errors, yellow messages are for informative errors and cyan messages are just the ones from users.
+
 ## How to use
 
 To send a message, you just need to enter the string you want to send.

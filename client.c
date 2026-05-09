@@ -19,6 +19,11 @@
 #include <openssl/ssl.h> // openssl libraries
 #include <openssl/err.h>
 
+#define ANSI_RESET  "\x1b[0m"
+#define ANSI_RED    "\x1b[31m"  
+#define ANSI_YELLOW "\x1b[33m" 
+#define ANSI_CYAN   "\x1b[36m"
+
 void usage(const char *name) {
   fprintf(stdout, "%s -s <server> -p <port> -u <username> [-h]\n", name);
   fprintf(stdout, "    -s <server>     server IPv4 address / machine name to connect\n");
@@ -54,10 +59,10 @@ int receive_msg(SSL *ssl) {
   
   ret = SSL_read(ssl, buffer, sizeof(buffer) - 1);
   if (ret == -1) {
-    perror("Error while receiving");
+    perror(ANSI_RED "Error while receiving" ANSI_RESET);
     exit(EXIT_FAILURE);
   } else {
-    printf("%s\n", buffer);
+    printf(ANSI_CYAN "%s\n" ANSI_RESET, buffer);
   }
   
   return 0;
@@ -69,7 +74,7 @@ int read_input(SSL *ssl, char *buffer, int *pos, int buffer_size, int *should_st
   
   ret = read(STDIN_FILENO, &key, sizeof(key));
   if (ret != sizeof(key)) {
-    perror("Error while reading key");
+    perror(ANSI_YELLOW "Error while reading key" ANSI_RESET);
     return -1;
   }
   
@@ -81,7 +86,7 @@ int read_input(SSL *ssl, char *buffer, int *pos, int buffer_size, int *should_st
     } else {	
       ret = SSL_write(ssl, buffer, strlen(buffer));
       if (ret == -1) {
-	perror("Error while sending message");
+	perror(ANSI_RESET "Error while sending message" ANSI_RESET);
       }
     }
     
@@ -136,19 +141,19 @@ int main(int argc, char *argv[]) {
       exit(EXIT_SUCCESS);
       break;
     default:
-      fprintf(stderr, "Unsupported option '%c'\n", opt);
+      fprintf(stderr, ANSI_YELLOW "Unsupported option '%c'\n" ANSI_RESET, opt);
       break;
     }
   }
   
   if (username == NULL) {
-    fprintf(stderr, "Username not specified !\n");
+    fprintf(stderr, ANSI_YELLOW "Username not specified !\n" ANSI_RESET);
     printf("./client -h for help\n");
     exit(EXIT_FAILURE);
   }
   
   if (server_addr == NULL) {
-    fprintf(stderr, "Server address not specified !\n");
+    fprintf(stderr, ANSI_YELLOW "Server address not specified !\n" ANSI_RESET);
     printf("./client -h for help\n");
     exit(EXIT_FAILURE);
   }
@@ -158,7 +163,7 @@ int main(int argc, char *argv[]) {
   
   ctx = SSL_CTX_new(SSLv23_method());
   if (ctx == NULL) {
-    printf("SSL object creation failed: ");
+    printf(ANSI_RED "SSL object creation failed: " ANSI_RESET);
     ERR_print_errors_fp(stdout);
     exit(EXIT_FAILURE);
   }
@@ -170,12 +175,12 @@ int main(int argc, char *argv[]) {
   
   ret = getaddrinfo(server_addr, port, &hints, &result);
   if (ret != 0) {
-    printf("getaddrinfo() error: %s\n", gai_strerror(ret));
+    printf(ANSI_RED "getaddrinfo() error: %s\n" ANSI_RESET, gai_strerror(ret));
     exit(EXIT_FAILURE);
   }
   
   if (connect(fd, result->ai_addr, result->ai_addrlen) == -1) {
-    perror("An error occured, cannot connect\n");
+    perror(ANSI_RED "An error occured, cannot connect\n" ANSI_RESET);
     exit(EXIT_FAILURE);
   }
   
@@ -183,7 +188,7 @@ int main(int argc, char *argv[]) {
   SSL_set_fd(ssl, fd);
   ret = SSL_connect(ssl);
   if (ret != 1) {
-    perror("An error occured, secure connection could not be established");
+    perror(ANSI_RED "An error occured, secure connection could not be established" ANSI_RESET);
     exit(EXIT_FAILURE);
   }
   
@@ -200,7 +205,7 @@ int main(int argc, char *argv[]) {
     
     ret = poll(fds, 2, -1);
     if (ret == -1) {
-      perror("Error while polling");
+      perror(ANSI_YELLOW "Error while polling" ANSI_RESET);
       break;
     }
     
