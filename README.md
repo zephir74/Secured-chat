@@ -1,6 +1,6 @@
 ## Description
 
-This is a CLI chat secured with openssl. There are various commands available,
+This is a CLI chat secured using OpenSSL 3.6.2, with various commands available,
 such as:
 
 - /help : display the help menu
@@ -18,7 +18,7 @@ To send a message, you just need to enter the string you want to send.
 For private messages, enter `@<username> <your_message>`.
 You can receive the message + the user who sent it.
 To compile the files, open a shell in the repository and enter `make all`.
-Then, type `./server -h` or `./client -h` to have detailed examples on how to use.
+Then, type `./server -h` or `./client -h` to have detailed examples on how to use them.
 For the certificates, execute `chmod +x generate-cert.sh && ./generate-cert.sh`. You can sign your certificate with your own enterprise name (CN= field).
 
 ## Requirements

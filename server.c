@@ -45,9 +45,12 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
   int fd;
   int ret;
   char buffer[256];
-  char *usercheck;
   SSL *ssl;
 
+  if (!address || !id || !ctx) {
+    return -EINVAL;
+  }
+  
   memset(buffer, 0, sizeof(buffer));
 
   addrlen = sizeof(*address);
@@ -63,10 +66,13 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
   for (i = 0; i < max_client; i++) {
     if (id[i].fd == -1) {
       ssl = SSL_new(ctx);
+      if (!ssl) {
+	return -ENOMEM;
+      }
       SSL_set_fd(ssl, fd);
       ret = SSL_accept(ssl);
       if (ret != 1) {
-	printf(ANSI_YELLOW "SSL connection could not be established\n" ANSI_RESET);
+	fprintf(stderr, ANSI_YELLOW "SSL connection could not be established\n" ANSI_RESET);
 	SSL_free(ssl);
 	close(fd);
 	return -EIO;
@@ -76,25 +82,20 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
 
       SSL_read(ssl, buffer, sizeof(buffer) - 1);
 
-      usercheck = strdup(buffer);
-
       for (j = 0; j < max_client; j++) {
-	if (id[j].username != NULL && strcmp(usercheck, id[j].username) == 0) {
-	  printf(ANSI_RED "Username '%s' already taken, connection refused\n" ANSI_RESET, usercheck);
-	  free(usercheck);
+	if (id[j].username && strcmp(buffer, id[j].username) == 0) {
+	  fprintf(stderr, ANSI_RED "Username '%s' already taken, connection refused\n" ANSI_RESET, buffer);
 	  SSL_free(ssl);
 	  close(fd);
 	  return 0;
 	}
       }
 
-      free(usercheck);
-
       id[i].ssl = ssl;
 
       id[i].username = strdup(buffer);
 			
-      printf("New client '%s' connected\n", id[i].username);
+      fprintf(stdout, "New client '%s' connected\n", id[i].username);
 			
       snprintf(buffer, sizeof(buffer), "Hello %s, this is MCP.", id[i].username);
       SSL_write(ssl, buffer, strlen(buffer));
@@ -103,8 +104,8 @@ int client_accept(int server_fd, struct sockaddr_in *address, struct client *id,
     }
   }
 
-  printf(ANSI_RED "Too many clients, cannot accept\n" ANSI_RESET);
-  close(ret);
+  fprintf(stderr, ANSI_RED "Too many clients, cannot accept\n" ANSI_RESET);
+  close(fd);
   return -EBUSY;
 }
 
@@ -412,7 +413,7 @@ int main(int argc, char *argv[]) {
     fd_num = 0;
     fds[fd_num].fd = server_fd;
     fds[fd_num].events = POLLIN;
-    fd_num++;  
+    fd_num++;
 	    
     for (i = 0; i < MAX_CLIENT; i++) {
       if (id[i].fd != -1) {
